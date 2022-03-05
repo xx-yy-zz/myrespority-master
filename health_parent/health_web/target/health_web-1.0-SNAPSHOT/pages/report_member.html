@@ -1,0 +1,230 @@
+<!--
+<!DOCTYPE html>
+<html>
+<head>
+    &lt;!&ndash; 页面meta &ndash;&gt;
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>传智健康</title>
+    <meta name="description" content="传智健康">
+    <meta name="keywords" content="传智健康">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    &lt;!&ndash; 引入样式 &ndash;&gt;
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/echarts.js"></script>
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>统计分析<small>会员数量</small></h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>统计分析</el-breadcrumb-item>
+            <el-breadcrumb-item>会员数量</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            &lt;!&ndash; 为 ECharts 准备一个具备大小（宽高）的 DOM &ndash;&gt;
+            <div id="chart1" style="height:600px;"></div>
+        </div>
+    </div>
+</div>
+</body>
+&lt;!&ndash; 引入组件库 &ndash;&gt;
+<script src="../js/vue.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart1 = echarts.init(document.getElementById('chart1'));
+
+    // 使用刚指定的配置项和数据显示图表。
+    //myChart.setOption(option);
+
+    axios.get("/report/getMemberReport.do").then((res)=>{
+        myChart1.setOption(
+            {
+                title: {
+                    text: '会员数量'
+                },
+                tooltip: {},
+                legend: {
+                    data:['会员数量']
+                },
+                xAxis: {
+                    data: res.data.data.months
+                },
+                yAxis: {
+                    type:'value'
+                },
+                series: [{
+                    name: '会员数量',
+                    type: 'line',
+                    data: res.data.data.memberCount
+                }]
+            });
+    });
+</script>
+</html>-->
+<!DOCTYPE html>
+<html xmlns:display="http://www.w3.org/1999/xhtml">
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>传智健康</title>
+    <meta name="description" content="传智健康">
+    <meta name="keywords" content="传智健康">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/echarts.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <script src="../js/jquery.min.js"></script>
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>统计分析<small>会员数量</small></h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>统计分析</el-breadcrumb-item>
+            <el-breadcrumb-item>会员数量</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <template>
+
+                <div>
+                    <!--开始日期控件-->
+                    <div class="block">
+                        <span class="demonstration">开始日期</span>
+                        <el-date-picker
+                                v-model="timemap.startTime"
+                                type="date"
+                                value-format="yyyy-MM-dd"
+                                format="yyyy-MM-dd"
+                                :picker-options="pickerOptionsStart"
+                                placeholder="选择日期">
+                        </el-date-picker>
+                    </div>
+                    <!--结束日期控件-->
+                    <div class="block">
+                        <span class="demonstration">结束日期</span>
+                        <el-date-picker
+                                v-model="timemap.endTime"
+                                type="date"
+                                value-format="yyyy-MM-dd"
+                                format="yyyy-MM-dd"
+                                :picker-options="pickerOptionsEnd"
+                                placeholder="选择日期">
+                        </el-date-picker>
+                        <el-button id="charts3" @click="getMemberReport()">根据日期展示</el-button>
+                    </div>
+                </div>
+            </template>
+            <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+            <div id="chart1" v-model="charts" style="height:600px;"></div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    /*获取日期:去年今天*/
+    var pre = new Date();
+    pre.setFullYear(pre.getFullYear()-1);
+    new Vue({
+        el:'#app',
+        data(){
+            return {
+                timemap:{
+                    /*默认开始日期:去年今天*/
+                    startTime:this.dateToString(pre),
+                    /*默认结束日期:今天*/
+                    endTime:this.dateToString(new Date())
+                },
+                //开始日期配置
+                pickerOptionsStart:{
+                    disabledDate:(time) => {
+                        let state
+                        if (this.timemap.endTime!=="") {
+                            state = time.getTime() > Date.now() || time.getTime() > new Date(this.timemap.endTime).getTime()
+                        }else {
+                            state = time.getTime() > Date.now()
+                        }
+                        return state
+                    }
+                },
+                //结束日期配置
+                pickerOptionsEnd:{
+                    disabledDate:(time)=> {
+                        return time.getTime() < new Date(this.timemap.startTime).getTime()-86400000 || time.getTime() > Date.now()
+                        // return   time.getTime() > Date.now()
+                    },
+                },
+            }
+        },
+        methods:{
+            /*根据日期查看表*/
+            getMemberReport(){
+                var myChart1 = echarts.init(document.getElementById('chart1'));
+                axios.post("/report/getMemberReportAdd.do",this.timemap).then((res)=>{
+                    myChart1.setOption(
+                        {
+
+                            title: {
+                                text: '会员数量'
+                            },
+                            tooltip: {},
+                            legend: {
+                                data:['会员数量']
+                            },
+                            xAxis: {
+                                data: res.data.data.months
+                            },
+                            yAxis: {
+                                type:'value'
+                            },
+                            series: [{
+                                name: '会员数量',
+                                type: 'line',
+                                data: res.data.data.memberCount
+                            }]
+                        });
+                });
+            },
+            /*日期转字符串 : Date => yyyy-mm-dd */
+            dateToString(date){
+                var year = date.getFullYear();
+                var month =(date.getMonth() + 1).toString();
+                var day = (date.getDate()).toString();
+                if (month.length == 1) {
+                    month = "0" + month;
+                }
+                if (day.length == 1) {
+                    day = "0" + day;
+                }
+                var dateTime = year + "-" + month + "-" + day;
+                return dateTime;
+            }
+        }
+    })
+    /*页面加载完成时展示表*/
+    $("#charts3").click();
+</script>
+
+
+
+
+
+
+
+</html>

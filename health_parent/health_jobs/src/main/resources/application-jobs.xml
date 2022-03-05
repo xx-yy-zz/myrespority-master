@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/mvc
+						http://www.springframework.org/schema/mvc/spring-mvc.xsd
+						http://code.alibabatech.com/schema/dubbo
+						http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.itheima"></context:component-scan>
+    <!-- 注册自定义Job -->
+    <bean id="jobDemo" class="com.itheima.jobs.ClearImgJob"></bean>
+    <!-- 注册JobDetail,作用是负责通过反射调用指定的Job -->
+    <bean id="jobDetail"
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!-- 注入目标对象 -->
+        <property name="targetObject" ref="jobDemo"/>
+        <!-- 注入目标方法 -->
+        <property name="targetMethod" value="clearImg"/>
+    </bean>
+    <!-- 注册一个触发器，指定任务触发的时间 -->
+    <bean id="myTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <!-- 注入JobDetail -->
+        <property name="jobDetail" ref="jobDetail"/>
+        <!-- 指定触发的时间，基于Cron表达式 -->
+        <property name="cronExpression">
+            <value>1-40 * * * * ?</value>
+        </property>
+    </bean>
+
+    <import resource="application-redis.xml"></import>
+
+
+    <!--注入自定义的bean-->
+    <bean id="ClearOrderSetting" class="com.itheima.jobs.ClearOrderSetting"></bean>
+
+    <!--注入细节-->
+    <bean id="jobOrderDetail"
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!-- 注入目标对象 -->
+        <property name="targetObject" ref="ClearOrderSetting"/>
+        <!-- 注入目标方法 -->
+        <property name="targetMethod" value="clearOrderSettingBefer"/>
+    </bean>
+
+
+    <!-- 注册一个触发器，指定任务触发的时间 -->
+    <bean id="myOrderTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <!-- 注入JobDetail -->
+        <property name="jobDetail" ref="jobOrderDetail"/>
+        <!-- 指定触发的时间，基于Cron表达式59   23   L    *    * -->
+        <property name="cronExpression">
+            <value>1-40 * * * * ? </value>
+        </property>
+    </bean>
+
+
+
+    <!-- 注册一个统一的调度工厂，通过这个调度工厂调度任务 -->
+       <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+         <!--  <property name="jobFactory">
+               <bean class="com.itheima.quartz.MyJobFactory" />
+           </property>-->
+           <!-- 注入多个触发器 -->
+        <property name="triggers">
+            <list>
+                <ref bean="myOrderTrigger"></ref>
+                <ref bean="myTrigger"></ref>
+            </list>
+        </property>
+
+       </bean>
+
+    <!-- 指定应用名称 -->
+    <dubbo:application name="health_jobs" />
+    <!--指定服务注册中心地址-->
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+    <!--批量扫描-->
+    <dubbo:annotation package="com.itheima.jobs" />
+    <!--
+        超时全局设置 10分钟
+        check=false 不检查服务提供方，开发阶段建议设置为false
+        check=true 启动时检查服务提供方，如果服务提供方没有启动则报错
+    -->
+    <dubbo:consumer timeout="600000" check="false"/>
+
+
+</beans>

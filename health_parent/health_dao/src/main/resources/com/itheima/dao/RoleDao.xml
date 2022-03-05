@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.RoleDao">
+    <select id="findByuserId" parameterType="int" resultType="com.itheima.pojo.Role">
+        select r.* from t_role r,t_user_role ur
+        where r.`id`=ur.`role_id`
+        and ur.`user_id`=#{userId}
+    </select>
+
+    <select id="queryMenuIdsByRoleId" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+      SELECT menu_id FROM t_role_menu WHERE role_id = #{id}
+    </select>
+
+    <select id="findAll" resultType="com.itheima.pojo.Role">
+        select  * from t_role
+    </select>
+
+    <select id="findroleIdsByUserId" resultType="int" parameterType="int">
+        select role_id from t_user_role where user_id=#{user_id}
+    </select>
+
+    <select id="findPage" resultType="com.itheima.pojo.Role" parameterType="java.lang.String">
+        select * from t_role
+        <if test="value != null and value.length > 0">
+            where name like '%${value}%'
+        </if>
+    </select>
+
+    <insert id="add" parameterType="com.itheima.pojo.Role">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            select last_insert_id()
+        </selectKey>
+        insert into t_role values
+        (null,#{name},#{keyword},#{description})
+    </insert>
+
+    <insert id="addrole_permission" parameterType="java.util.HashMap">
+        insert into t_role_permission VALUES
+        (#{role_id},#{permission_id})
+    </insert>
+    
+    <insert id="addrole_menu" parameterType="java.util.HashMap">
+        insert into t_role_menu  VALUES
+        (#{role_id},#{menu_id})
+    </insert>
+
+    <update id="edit" parameterType="com.itheima.pojo.Role">
+        update t_role
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="keyword != null">
+                keyword = #{keyword},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleterole_permission" parameterType="java.lang.Integer">
+        delete from t_role_permission where role_id = #{id}
+    </delete>
+    <delete id="deleterole_menu" parameterType="java.lang.Integer">
+        delete from t_role_menu where role_id = #{id}
+    </delete>
+
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete from t_role where id =#{id}
+    </delete>
+
+    <select id="findPermissionIdsByRoleId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select permission_id from t_role_permission where role_id =#{roleId}
+    </select>
+
+    <select id="findMenuIdsByRoleId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select menu_id from t_role_menu where role_id =#{roleId}
+    </select>
+</mapper>

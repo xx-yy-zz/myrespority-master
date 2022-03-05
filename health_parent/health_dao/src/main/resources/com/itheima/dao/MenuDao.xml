@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.MenuDao">
+
+    <select id="queryMenuByMenuId" resultType="com.itheima.pojo.Menu" parameterType="java.util.List">
+        SELECT * FROM t_menu WHERE id IN
+        <foreach collection="list" item="currentId" open="(" separator="," close=")">
+            #{currentId}
+        </foreach>
+    </select>
+
+    <select id="findPage" parameterType="string"
+            resultType="com.itheima.pojo.Menu">
+        select * from t_Menu
+        <if test="value !=null and value.length>0">
+            where name = #{value}
+        </if>
+    </select>
+
+    <insert id="add" parameterType="com.itheima.pojo.Menu">
+        insert into t_menu (name,linkUrl,path,priority,icon,description,parentMenuId)
+        values (#{name},#{linkUrl},#{path},#{priority},#{icon},#{description},#{parentMenuId})
+    </insert>
+
+    <update id="edit" parameterType="com.itheima.pojo.Menu">
+        update t_menu
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="linkUrl != null">
+                linkUrl = #{linkUrl},
+            </if>
+            <if test="path != null">
+                path = #{path},
+            </if>
+            <if test="priority != priority">
+                age = #{age},
+            </if>
+            <if test="icon != null">
+                icon = #{icon},
+            </if>
+            <if test="description != null">
+                description= #{description},
+            </if>
+            <if test="parentMenuId != null">
+                parentMenuId = #{parentMenuId},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="findCount" parameterType="java.lang.Integer" resultType="java.lang.Long">
+        select count(role_id) from t_role_menu where menu_id = #{id}
+    </select>
+
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete from t_menu where id = #{id}
+    </delete>
+
+    <select id="findAll" resultType="com.itheima.pojo.Menu">
+        select id,name,linkUrl,path,priority,icon,description,parentMenuId from t_menu
+    </select>
+</mapper>
